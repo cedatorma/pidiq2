@@ -1,0 +1,5 @@
+name	type	h_min	h_max	s_min	s_max	v_min	v_max
+arabidopsis	healthy	50	104	0	255	43	255
+arabidopsis	diseased	33	50	0	255	134	255
+camelina/brassicacea	healthy	45	104	0	255	117	255
+camelina/brassicacea	diseased	23	45	0	255	127	255
