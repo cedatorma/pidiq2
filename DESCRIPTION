@@ -19,3 +19,5 @@ Imports:
     magrittr,
     stats,
     utils
+URL: https://github.com/cedatorma/pidiq2
+BugReports: https://github.com/cedatorma/pidiq2/issues
