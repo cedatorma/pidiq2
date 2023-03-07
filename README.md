@@ -6,7 +6,7 @@
 
 Making PIDIQ possible in R. In short, PIDIQ is an image-analysis based, non-destructive, efficient, and reproducible approach for quantifying microbial pathogen-plant disease/immunity eliciting responses. 
 
-PIDIQ2 is inspired by the original PIDIQ ImageJ macro, see [Laflamme et al. 2016](https://pubmed.ncbi.nlm.nih.gov/27996374/), but its functionality has been expended for large-scale screening, allowing for the analysis of multiple-plant images, and provides a set of helper-GUIs simplify make image-preprocessing. 
+PIDIQ2 is inspired by the original PIDIQ ImageJ macro, see [Laflamme et al. 2016](https://pubmed.ncbi.nlm.nih.gov/27996374/), but its functionality has been significantly expended to compliment high-throughput screening, handling both single and multiple-plant images, and provides a user-friendly interface and set of helper-GUIs for a steamlined and interactive analysis experience. 
 
 ## Installation
 
