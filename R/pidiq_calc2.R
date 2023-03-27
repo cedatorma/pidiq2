@@ -132,6 +132,8 @@ pidiq_calc2 <- function(img_file,
 
 
   ##Initialization of PIDIQ analysis run:
+  #Start the timer:
+  start <- Sys.time()
 
   #Set up a test directory for storing output:
   if(length(list.dirs('./test_pidiq2')) == 0) system(paste('mkdir', output_dir))
@@ -221,8 +223,13 @@ pidiq_calc2 <- function(img_file,
 
   #If the image width or height exceed 1000 pixels,
   #rescale to make it faster to work with:
-  if(max(magick::image_info(img)[c('width', 'height')]) > 1000) img <- magick::image_scale(img, "1000")
+  wh <- magick::image_info(img)[c('width', 'height')]
 
+  if(max(wh) > 1000) img <- magick::image_scale(img, "1000")
+
+  #For down-scaling plots,
+  #Renormalize the image to a maximum of 10 pixels in width or height.
+  wh <- wh / max(wh) * 10
 
   #Rasterize the image into a table: (x,y) of pixel coords and corresponding hex
   #colours:
@@ -404,17 +411,24 @@ pidiq_calc2 <- function(img_file,
 
   ##Perform Single or Multi-Well PIDIQ##
   if(is.null(row_lab) | n_c * n_r == 1){
-    pidiq_single(img_file, output_dir, msg, df)
+    res <- pidiq_single(img_file, output_dir, msg, df, wh)
   }
   else{
-    pidiq_multi(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt, df, grp_size, grp2_size)
+    res <- pidiq_multi(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt, df, grp_size, grp2_size, wh)
   }
+
+  #Stop the timer:
+  stop <- Sys.time()
+
+  message(paste('Done in', stop - start))
+
+  return(res)
 
 }
 
 
 #Multi-Well PIDIQ:
-pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt, df, grp_size, grp2_size){
+pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt, df, grp_size, grp2_size, wh){
 
   #####
   #Subdivide the image into individual crops and wells:
@@ -557,7 +571,8 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
            #1) Watershed Segmentation Groups:
 
            #Open a file for plotting:
-           png(watershed_file, width = 10, height = 10, units = 'in', res = 72)
+
+           png(watershed_file, width = wh$width, height = wh$height, units = 'in', res = 72)
 
            #Initialize the plot:
            par(bty = 'n', mar = c(0,0,0,0), xpd = NA)
@@ -583,7 +598,7 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
 
            #Open a new file for plotting:
            #outfile = paste0(output_dir, '/', sub('.*[/]', '', img_file), '_seggroups.png')
-           png(bw_file, width = 10, height = 10, units = 'in', res = 72)
+           png(bw_file, width = wh$width, height = wh$height, units = 'in', res = 72)
 
            #Initialize the plot (un-comment the following lines to produce a separate plot):
            par(bty = 'n', mar = c(0,0,0,0), xpd = NA)
@@ -932,7 +947,7 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
 
          #Open a file for plotting:
          #outfile = paste0(output_dir, '/', sub('.*[/]', '', img_file), '_painted.png')
-         png(outfile1, width = 10, height = 10, units = 'in', res = 72)
+         png(outfile1, width = wh$width, height = wh$height, units = 'in', res = 72)
 
          #Initialize the plot:
          par(bty = 'n', mar = c(0,0,0,0), xpd = NA)
@@ -951,7 +966,7 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
 
          #Open a new file for plotting:
          #outfile = paste0(output_dir, '/', sub('.*[/]', '', img_file), '_seggroups.png')
-         png(outfile2, width = 10, height = 10, units = 'in', res = 72)
+         png(outfile2, width = wh$width, height = wh$height, units = 'in', res = 72)
 
          #Initialize the plot (un-comment the following lines to produce a separate plot):
          par(bty = 'n', mar = c(0,0,0,0), xpd = NA)
@@ -1031,7 +1046,7 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
 
 
 
-pidiq_single <- function(img_file, output_dir, msg, df){
+pidiq_single <- function(img_file, output_dir, msg, df, wh){
   #Map updated crop assignments to segmented pixel groups from the original
   #plate image:
 
@@ -1071,7 +1086,7 @@ pidiq_single <- function(img_file, output_dir, msg, df){
 
          #Open a file for plotting:
          #outfile = paste0(output_dir, '/', sub('.*[/]', '', img_file), '_painted.png')
-         png(outfile1, width = 10, height = 10, units = 'in', res = 72)
+         png(outfile1, width = wh$width, height = wh$height, units = 'in', res = 72)
 
          #Initialize the plot:
          par(bty = 'n', mar = c(0,0,0,0), xpd = NA)
