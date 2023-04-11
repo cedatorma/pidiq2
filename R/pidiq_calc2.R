@@ -100,7 +100,7 @@
 #analysis, and indicated as NA's in the final summary stats table.
 
 
-#' Calculate PIDIQ statistics from a plant-immunity elicitation experiment image.
+#' Calculate PIDIQ Statistics From Plant-Immunity Elicitation Experiment Images.
 #'
 #' @param img_file Path to plant/plate spray image.
 #' @param output_dir Path to output directory for storing processed images, if test_plt == TRUE (default: './test_pidiq2').
@@ -112,7 +112,7 @@
 #' @param col_lab For multi-plant images: Supplied labels corresponding to plate/flat column indices (default: NULL).
 #' @param row_lab For multi-plant images: Supplied labels corresponding to plate/flat row indices (default: NULL).
 #' @param filter Name of filtering preset corresponding to the 'name' column of the pidiq_presets.csv file,
-#' which is assumed to be found in the current working directory where the script is called.
+#' which is assumed to be found in the same working directory as the current R session.
 #' @param msg Print progress-messages to console (default: FALSE).
 #'
 #' @return A data.frame with PIDIQ statistics calculated from the given plant image file.
@@ -437,15 +437,19 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
   if(msg) message('4) Determining Image Crop Regions')
 
   #Get average crop/well pixel height and width:
-  df_row_l = floor(max(df$y) / n_r)
-  df_col_l = floor(max(df$x) / n_c)
+  df_row_l <- max(df$y) / n_r
+  df_col_l <- max(df$x) / n_c
+  #df_row_l = floor(max(df$y) / n_r)
+  #df_col_l = floor(max(df$x) / n_c)
 
   #Get breaks between the crop/wells:
-  df_row_br <- seq(0, max(df$y), df_row_l)
-  df_row_br[length(df_row_br)] <- max(df$y)
-
-  df_col_br <- seq(0, max(df$x), df_col_l)
-  df_col_br[length(df_col_br)] <-max(df$x)
+  df_row_br <- c(0, (1:(n_r)) * df_row_l)
+  df_col_br <- c(0, (1:(n_c)) * df_col_l)
+  # df_row_br <- seq(0, max(df$y), df_row_l)
+  # df_row_br[length(df_row_br)] <- max(df$y)
+  #
+  # df_col_br <- seq(0, max(df$x), df_col_l)
+  # df_col_br[length(df_col_br)] <-max(df$x)
 
 
   #####
@@ -472,6 +476,7 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
                          y_min = r_lims[1, r_ind] + 1,
                          y_max = r_lims[2, r_ind])
 
+  #return(list(r_lims, c_lims))
 
   #####
   #Assign pixels to crops:
@@ -583,6 +588,23 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
                        xleft = min(x), ybottom = min(y), xright = max(x), ytop = max(y),
                        interpolate = FALSE)
 
+           #Add crop-dimension boundaries:
+           for(i in 1:ncol(r_lims)){
+             if(i == 1)
+               abline(h = r_lims[1,i])
+
+             abline(h = r_lims[2,i])
+           }
+
+
+           for(i in 1:ncol(c_lims)){
+             if(i == 1)
+               abline(v = c_lims[1,i])
+
+             abline(v = c_lims[2,i])
+           }
+
+
            #Plot group midpoints:
            with(grp_mids,
                 {
@@ -608,6 +630,22 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
            rasterImage(img_bw,
                        xleft = min(x), ybottom = min(y), xright = max(x), ytop = max(y),
                        interpolate = FALSE)
+
+           #Add crop-dimension boundaries:
+           for(i in 1:ncol(r_lims)){
+             if(i == 1)
+               abline(h = r_lims[1,i])
+
+             abline(h = r_lims[2,i])
+           }
+
+
+           for(i in 1:ncol(c_lims)){
+             if(i == 1)
+               abline(v = c_lims[1,i])
+
+             abline(v = c_lims[2,i])
+           }
 
            #Close the file:
            dev.off()
@@ -1017,10 +1055,26 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
     stats::aggregate(npix ~ crop_new + cat, data = ., sum) %>%
     #Pivot data.frame to wide format so that the number of green and yellow pixels
     #per crop are assigned to individual columns:
-    stats::reshape(idvar = 'crop_new', timevar = 'cat', direction = 'wide') %>%
+    stats::reshape(idvar = 'crop_new', timevar = 'cat', direction = 'wide')
+
+  #Convert unassigned pixels to 0,
+  #Note that if no green / yellow pixels are assigned, then an error will be thrown:
+  if('npix.yellow' %in% colnames(res)){
+    res <- res %>%
+      transform(npix.yellow = ifelse(is.na(npix.yellow), 0, npix.yellow))
+  }
+
+  if('npix.green' %in% colnames(res)){
+    res <- res %>%
+      transform(npix.yellow = ifelse(is.na(npix.green), 0, npix.green))
+  }
+
+  # %>%
+  #   transform(npix.yellow = ifelse(is.na(npix.yellow), 0, npix.yellow),
+  #             npix.green = ifelse(is.na(npix.green), 0, npix.green)) %>%
+
     #Calculate PIDIQ summary statistics:
-    transform(npix.yellow = ifelse(is.na(npix.yellow), 0, npix.yellow),
-              npix.green = ifelse(is.na(npix.green), 0, npix.green)) %>%
+  res <- res %>%
     transform(Well = well_lab[crop_new],
               Well_Sum = npix.yellow + npix.green,
               Well_Prop = (npix.yellow + npix.green) / well_area,
