@@ -136,7 +136,7 @@ pidiq_calc2 <- function(img_file,
   start <- Sys.time()
 
   #Set up a test directory for storing output:
-  if(length(list.dirs('./test_pidiq2')) == 0) system(paste('mkdir', output_dir))
+  if(length(list.dirs(output_dir)) == 0) system(paste('mkdir', output_dir))
 
 
   #Check if image contains single or multiple plants:
@@ -1066,7 +1066,7 @@ pidiq_multi <- function(img_file, output_dir, well_lab, n_r, n_c, msg, test_plt,
 
   if('npix.green' %in% colnames(res)){
     res <- res %>%
-      transform(npix.yellow = ifelse(is.na(npix.green), 0, npix.green))
+      transform(npix.green = ifelse(is.na(npix.green), 0, npix.green))
   }
 
   # %>%
