@@ -19,7 +19,7 @@ devtools::install_github("cedatorma/pidiq2")
 
 ## Example
 
-To come! But for now, download and check out the primer/tutorial .html file [pidiq_primer1.html](https://github.com/cedatorma/pidiq2/pidiq_primer1.html).
+To come! But for now, download and check out the primer/tutorial .html file [pidiq_primer1.html](https://github.com/cedatorma/pidiq2/blob/master/pidiq_primer1.html).
 
 ``` r
 library(pidiq2)
